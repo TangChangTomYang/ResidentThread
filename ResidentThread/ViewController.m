@@ -52,6 +52,8 @@
 }
 
 -(void)stopResidentAndRunLoop{
+    if(self.residentThread == nil) return;
+    
     // 注意 waitUntilDone:YES 必须要写yes(必须要保证runloop和常驻线程死了才能销毁控制器),否则会包 坏内存访问
      [self performSelector:@selector(stopRunLoop) onThread:self.residentThread withObject:nil waitUntilDone:YES];
 }
@@ -64,13 +66,14 @@
     // 停止runloop
     CFRunLoopStop(CFRunLoopGetCurrent());
     NSLog(@"%s, %@",__func__, [NSThread currentThread]);
-    
+    self.residentThread = nil;
 }
 
 
 
 
 -(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    if(self.residentThread == nil) return;
     [self performSelector:@selector(test) onThread:self.residentThread withObject:nil waitUntilDone:NO];
 }
 
@@ -91,9 +94,7 @@
           [self stopResidentAndRunLoop];
         //技巧,如果想在dealloc 销毁前做完某件事,可以调用下面的方法
 //        [self performSelector:@selector(dealloc 销毁前需要完成的方法) onThread:指定的线程 withObject:nil waitUntilDone:YES];
-        
     }
-    
 }
 
 @end
